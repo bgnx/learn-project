@@ -57,12 +57,6 @@ let todos = [
   { text: `hello5`, creationTime: Math.random() },
 ];
 
-let rerender = () => {
-  let root = document.body.firstElementChild;
-  root.removeChild(root.firstElementChild)
-  root.appendChild(render(App()));
-}
-
 let App = () => {
   return x({
     padding: `50px`,
@@ -125,6 +119,12 @@ let App = () => {
     ]
   });
 };
+
+let rerender = () => {
+  let root = document.body.firstElementChild;
+  root.removeChild(root.firstElementChild)
+  root.appendChild(render(App()));
+}
 
 let render = (node) => {
   let el = document.createElement(node.styles.tag ? node.styles.tag : `div`);
