@@ -26,7 +26,7 @@ let Input = ({ ...obj } = {}, attrs = {}) => {
   })
 }
 
-let Todo = ({ text, onChange = () => { } }) => {
+let Todo = ({ todo }) => {
   return x({
     flexDirection: `row`,
     border: `1px solid gray`,
@@ -37,25 +37,38 @@ let Todo = ({ text, onChange = () => { } }) => {
         flex: 1,
         marginLeft: `10px`,
         children: [
-          Input({}, { value: text, oninput: (e) => onChange(e.target.value) })
+          Input({}, {
+            value: todo.text,
+            oninput: (e) => {
+              todo.text = e.target.value;
+              rerender();
+            }
+          })
         ]
       }),
       x({
         alignItems: `center`,
         justifyContent: `center`,
         border: `1px solid gray`,
-        children: `x`
+        children: `x`,
+      }, {
+        onclick: () => {
+          todos.splice(todos.indexOf(todo), 1);
+          //request(serverUrl, `deleteTodo`, todo.id);
+          console.log(`delete todo`, todo.id)
+          rerender();
+        }
       })
     ]
   })
 }
 
 let todos = [
-  { text: `hello1`, creationTime: Math.random() },
-  { text: `hello2`, creationTime: Math.random() },
-  { text: `hello3`, creationTime: Math.random() },
-  { text: `hello4`, creationTime: Math.random() },
-  { text: `hello5`, creationTime: Math.random() },
+  { id: 0, text: `hello0`, creationTime: Math.random() },
+  { id: 1, text: `hello1`, creationTime: Math.random() },
+  { id: 2, text: `hello2`, creationTime: Math.random() },
+  { id: 3, text: `hello3`, creationTime: Math.random() },
+  { id: 4, text: `hello4`, creationTime: Math.random() },
 ];
 let newTodoText = ``;
 
@@ -82,7 +95,7 @@ let App = () => {
             children: `add todo`,
           }, {
             onclick: () => {
-              todos.push({ text: newTodoText, creationTime: Math.random() });
+              todos.push({ id: todo.length, text: newTodoText, creationTime: Math.random() });
               newTodoText = ``;
               rerender();
             }
@@ -91,14 +104,7 @@ let App = () => {
       }),
       x({
         marginTop: `15px`,
-        children: todos.map(todo => Todo({
-          text: todo.text,
-          onChange: (newText) => {
-            console.log(newText);
-            todo.text = newText;
-            rerender();
-          }
-        }))
+        children: todos.map(todo => Todo({ todo: todo }))
       }),
       x({
         marginTop: `10px`,
@@ -107,14 +113,7 @@ let App = () => {
             children: [
               x({ children: `sort by creation time` }),
               x({
-                children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({
-                  text: todo.text,
-                  onChange: (newText) => {
-                    console.log(newText);
-                    todo.text = newText;
-                    rerender();
-                  }
-                }))
+                children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({ todo: todo }))
               })
             ]
           })
