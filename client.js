@@ -31,12 +31,12 @@ let Input = ({ text = ``, ...obj } = {}, attrs = {}) => {
   return x({
     ...obj,
     children: [
-      x({ tag: `input` }, { value: text, ...attrs })
+      x({ tag: `input` }, { value: text, type: `text`, ...attrs })
     ]
   })
 }
 
-let Todo = ({ text, onChange = () => { } }) => {
+let Todo = ({ text, id, onChange = () => { } }) => {
   return x({
     flexDirection: `row`,
     border: `1px solid gray`,
@@ -57,15 +57,15 @@ let Todo = ({ text, onChange = () => { } }) => {
         text: `x`
       })
     ]
-  })
+  }, { id })
 }
 
 let todos = [
-  { text: `hello1`, creationTime: Math.random() },
-  { text: `hello2`, creationTime: Math.random() },
-  { text: `hello3`, creationTime: Math.random() },
-  { text: `hello4`, creationTime: Math.random() },
-  { text: `hello5`, creationTime: Math.random() },
+  { id: 0, text: `hello1`, creationTime: Math.random() },
+  { id: 1, text: `hello2`, creationTime: Math.random() },
+  { id: 2, text: `hello3`, creationTime: Math.random() },
+  { id: 3, text: `hello4`, creationTime: Math.random() },
+  { id: 4, text: `hello5`, creationTime: Math.random() },
 ];
 
 let rerender = () => {
@@ -104,11 +104,13 @@ let App = () => x({
     x({
       marginTop: `15px`,
       children: todos.map(todo => Todo({
+        id: `by-history-` + todo.id,
         text: todo.text,
         onChange: (newText) => {
           console.log(newText);
           todo.text = newText;
-          rerender();
+          //rerender();
+          document.querySelector(`#by-creationTime-${todo.id} input[type=text]`).value = todo.text;
         }
       }))
     }),
@@ -121,6 +123,7 @@ let App = () => x({
             x({
               children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({
                 text: todo.text,
+                id: `by-creationTime-` + todo.id,
                 onChange: (newText) => {
                   console.log(newText);
                   todo.text = newText;
