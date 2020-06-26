@@ -1,20 +1,9 @@
-let x = (stylesObj, attrsObj = {}) => {
-  let el = document.createElement(stylesObj.tag ? stylesObj.tag : `div`);
-  if (stylesObj.text) {
-    el.textContent = stylesObj.text;
-  } else if (stylesObj.children) {
-    stylesObj.children.forEach(childEl => {
-      el.appendChild(childEl)
-    });
+let x = ({ children, ...stylesObj }, attrsObj = {}) => {
+  return {
+    styles: stylesObj,
+    attrs: attrsObj,
+    children,
   }
-  Object.keys(stylesObj).forEach(key => {
-    if (key === `text` || key === `children`) return;
-    el.style[key] = stylesObj[key];
-  });
-  Object.keys(attrsObj).forEach(key => {
-    el[key] = attrsObj[key];
-  });
-  return el;
 }
 
 let Checkbox = (obj = {}) => {
@@ -71,68 +60,90 @@ let todos = [
 let rerender = () => {
   let root = document.body.firstElementChild;
   root.removeChild(root.firstElementChild)
-  root.appendChild(App());
+  root.appendChild(render(App()));
 }
 
-let App = () => x({
-  padding: `50px`,
-  children: [
-    x({
-      alignItems: `center`,
-      fontSize: `20px`,
-      text: `Todos`
-    }),
-    x({
-      marginTop: `15px`,
-      flexDirection: `row`,
-      children: [
-        Input({
-          flex: `1`,
-          border: `1px solid gray`
-        }),
-        x({
-          tag: `button`,
-          marginLeft: `10px`,
-          text: `add todo`,
-        }, {
-          onclick: () => {
-            console.log(`click`)
+let App = () => {
+  return x({
+    padding: `50px`,
+    children: [
+      x({
+        alignItems: `center`,
+        fontSize: `20px`,
+        text: `Todos`
+      }),
+      x({
+        marginTop: `15px`,
+        flexDirection: `row`,
+        children: [
+          Input({
+            flex: `1`,
+            border: `1px solid gray`
+          }),
+          x({
+            tag: `button`,
+            marginLeft: `10px`,
+            text: `add todo`,
+          }, {
+            onclick: () => {
+              console.log(`click`)
+            }
+          })
+        ]
+      }),
+      x({
+        marginTop: `15px`,
+        children: todos.map(todo => Todo({
+          text: todo.text,
+          onChange: (newText) => {
+            console.log(newText);
+            todo.text = newText;
+            rerender();
           }
-        })
-      ]
-    }),
-    x({
-      marginTop: `15px`,
-      children: todos.map(todo => Todo({
-        text: todo.text,
-        onChange: (newText) => {
-          console.log(newText);
-          todo.text = newText;
-          rerender();
-        }
-      }))
-    }),
-    x({
-      marginTop: `10px`,
-      children: [
-        x({
-          children: [
-            x({ text: `sort by creation time` }),
-            x({
-              children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({
-                text: todo.text,
-                onChange: (newText) => {
-                  console.log(newText);
-                  todo.text = newText;
-                  rerender();
-                }
-              }))
-            })
-          ]
-        })
-      ]
-    })
-  ]
-});
+        }))
+      }),
+      x({
+        marginTop: `10px`,
+        children: [
+          x({
+            children: [
+              x({ text: `sort by creation time` }),
+              x({
+                children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({
+                  text: todo.text,
+                  onChange: (newText) => {
+                    console.log(newText);
+                    todo.text = newText;
+                    rerender();
+                  }
+                }))
+              })
+            ]
+          })
+        ]
+      })
+    ]
+  });
+};
 
-document.body.firstElementChild.appendChild(App());
+let render = (node) => {
+  let el = document.createElement(node.styles.tag ? node.styles.tag : `div`);
+  if (node.styles.text) {
+    el.textContent = node.styles.text;
+  } else if (node.children) {
+    node.children.forEach(childObj => {
+      el.appendChild(render(childObj))
+    });
+  }
+  Object.keys(node.styles).forEach(key => {
+    if (key === `text` || key === `children`) return;
+    el.style[key] = node.styles[key];
+  });
+  Object.keys(node.attrs).forEach(key => {
+    el[key] = node.attrs[key];
+  });
+  return el;
+}
+
+
+document.body.firstElementChild.appendChild(render(App()));
