@@ -43,7 +43,7 @@ let Todo = ({ text, onChange = () => { } }) => {
         alignItems: `center`,
         justifyContent: `center`,
         border: `1px solid gray`,
-        text: `x`
+        children: `x`
       })
     ]
   })
@@ -64,7 +64,7 @@ let App = () => {
       x({
         alignItems: `center`,
         fontSize: `20px`,
-        text: `Todos`
+        children: `Todos`
       }),
       x({
         marginTop: `15px`,
@@ -77,7 +77,7 @@ let App = () => {
           x({
             tag: `button`,
             marginLeft: `10px`,
-            text: `add todo`,
+            children: `add todo`,
           }, {
             onclick: () => {
               console.log(`click`)
@@ -101,7 +101,7 @@ let App = () => {
         children: [
           x({
             children: [
-              x({ text: `sort by creation time` }),
+              x({ children: `sort by creation time` }),
               x({
                 children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({
                   text: todo.text,
@@ -139,8 +139,8 @@ let render = (node, oldNode, parentEl) => {
     el[key] = node.attrs[key];
   });
 
-  if (node.styles.text) {
-    el.textContent = node.styles.text;
+  if (typeof node.children === `string`) {
+    el.textContent = node.children;
   } else if (node.children) {
     node.children.forEach(childObj => {
       render(childObj, null, el);
