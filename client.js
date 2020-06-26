@@ -130,13 +130,7 @@ let rerender = () => {
 
 let render = (node, oldNode, parentEl) => {
   let el = document.createElement(node.styles.tag ? node.styles.tag : `div`);
-  if (node.styles.text) {
-    el.textContent = node.styles.text;
-  } else if (node.children) {
-    node.children.forEach(childObj => {
-      render(childObj, null, el);
-    });
-  }
+  
   Object.keys(node.styles).forEach(key => {
     if (key === `text` || key === `children`) return;
     el.style[key] = node.styles[key];
@@ -144,6 +138,15 @@ let render = (node, oldNode, parentEl) => {
   Object.keys(node.attrs).forEach(key => {
     el[key] = node.attrs[key];
   });
+
+  if (node.styles.text) {
+    el.textContent = node.styles.text;
+  } else if (node.children) {
+    node.children.forEach(childObj => {
+      render(childObj, null, el);
+    });
+  }
+  
   parentEl.appendChild(el);
 }
 
