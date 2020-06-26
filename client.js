@@ -3,6 +3,7 @@ let x = ({ children, ...stylesObj }, attrsObj = {}) => {
     styles: stylesObj,
     attrs: attrsObj,
     children,
+    el: null,
   }
 }
 
@@ -122,32 +123,39 @@ let App = () => {
 
 let rootEl = document.body.firstElementChild;
 let rerender = () => {
-  rootEl.removeChild(rootEl.firstElementChild);
+  //rootEl.removeChild(rootEl.firstElementChild);
   let newNode = App();
   render(newNode, node, rootEl);
   node = newNode;
 }
 
 let render = (node, oldNode, parentEl) => {
-  let el = document.createElement(node.styles.tag ? node.styles.tag : `div`);
-  
+  let el = oldNode === null ? document.createElement(node.styles.tag ? node.styles.tag : `div`) : oldNode.el;
+
   Object.keys(node.styles).forEach(key => {
     if (key === `text` || key === `children`) return;
-    el.style[key] = node.styles[key];
+    if (oldNode === null || node.styles[key] !== oldNode.styles[key]) {
+      el.style[key] = node.styles[key];
+    }
   });
   Object.keys(node.attrs).forEach(key => {
-    el[key] = node.attrs[key];
+    if (oldNode === null || node.attrs[key] !== oldNode.attrs[key]) {
+      el[key] = node.attrs[key];
+    }
   });
-
   if (typeof node.children === `string`) {
-    el.textContent = node.children;
+    if (oldNode === null || node.children !== oldNode.children) {
+      el.textContent = node.children;
+    }
   } else if (node.children) {
-    node.children.forEach(childObj => {
-      render(childObj, null, el);
+    node.children.forEach((childObj, i) => {
+      render(childObj, oldNode ? oldNode.children[i] : null, el);
     });
   }
-  
-  parentEl.appendChild(el);
+  node.el = el;
+  if (oldNode === null) {
+    parentEl.appendChild(el);
+  }
 }
 
 let node = App();
