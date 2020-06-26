@@ -120,19 +120,21 @@ let App = () => {
   });
 };
 
+let rootEl = document.body.firstElementChild;
 let rerender = () => {
-  let root = document.body.firstElementChild;
-  root.removeChild(root.firstElementChild)
-  root.appendChild(render(App()));
+  rootEl.removeChild(rootEl.firstElementChild);
+  let newNode = App();
+  render(newNode, node, rootEl);
+  node = newNode;
 }
 
-let render = (node) => {
+let render = (node, oldNode, parentEl) => {
   let el = document.createElement(node.styles.tag ? node.styles.tag : `div`);
   if (node.styles.text) {
     el.textContent = node.styles.text;
   } else if (node.children) {
     node.children.forEach(childObj => {
-      el.appendChild(render(childObj))
+      render(childObj, null, el);
     });
   }
   Object.keys(node.styles).forEach(key => {
@@ -142,8 +144,8 @@ let render = (node) => {
   Object.keys(node.attrs).forEach(key => {
     el[key] = node.attrs[key];
   });
-  return el;
+  parentEl.appendChild(el);
 }
 
-
-document.body.firstElementChild.appendChild(render(App()));
+let node = App();
+render(node, null, rootEl);
