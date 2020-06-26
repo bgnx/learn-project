@@ -17,11 +17,11 @@ let Checkbox = (obj = {}) => {
     ]
   })
 }
-let Input = ({ text = ``, ...obj } = {}, attrs = {}) => {
+let Input = ({ ...obj } = {}, attrs = {}) => {
   return x({
     ...obj,
     children: [
-      x({ tag: `input` }, { value: text, ...attrs })
+      x({ tag: `input` }, attrs)
     ]
   })
 }
@@ -37,7 +37,7 @@ let Todo = ({ text, onChange = () => { } }) => {
         flex: 1,
         marginLeft: `10px`,
         children: [
-          Input({ text: text }, { oninput: (e) => onChange(e.target.value) })
+          Input({}, { value: text, oninput: (e) => onChange(e.target.value) })
         ]
       }),
       x({
@@ -57,6 +57,7 @@ let todos = [
   { text: `hello4`, creationTime: Math.random() },
   { text: `hello5`, creationTime: Math.random() },
 ];
+let newTodoText = ``;
 
 let App = () => {
   return x({
@@ -74,14 +75,16 @@ let App = () => {
           Input({
             flex: `1`,
             border: `1px solid gray`
-          }),
+          }, { value: newTodoText, oninput: (e) => { newTodoText = e.target.value } }),
           x({
             tag: `button`,
             marginLeft: `10px`,
             children: `add todo`,
           }, {
             onclick: () => {
-              console.log(`click`)
+              todos.push({ text: newTodoText, creationTime: Math.random() });
+              newTodoText = ``;
+              rerender();
             }
           })
         ]
@@ -149,7 +152,7 @@ let render = (node, oldNode, parentEl) => {
     }
   } else if (node.children) {
     node.children.forEach((childObj, i) => {
-      render(childObj, oldNode ? oldNode.children[i] : null, el);
+      render(childObj, oldNode ? oldNode.children[i] || null : null, el);
     });
   }
   node.el = el;
