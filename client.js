@@ -47,6 +47,17 @@ let Todo = ({ todo }) => {
         ]
       }),
       x({
+        marginLeft: `10px`,
+        marginRight: `10px`,
+        children: `count: ${todo.count}`,
+      }, {
+        onclick: () => {
+          todo.count += 1;
+          console.log(`count:`, todo.count);
+          rerender();
+        }
+      }),
+      x({
         alignItems: `center`,
         justifyContent: `center`,
         border: `1px solid gray`,
@@ -64,11 +75,11 @@ let Todo = ({ todo }) => {
 }
 
 let todos = [
-  { id: 0, text: `hello0`, creationTime: Math.random() },
-  { id: 1, text: `hello1`, creationTime: Math.random() },
-  { id: 2, text: `hello2`, creationTime: Math.random() },
-  { id: 3, text: `hello3`, creationTime: Math.random() },
-  { id: 4, text: `hello4`, creationTime: Math.random() },
+  { id: 0, text: `hello0`, creationTime: Math.random(), count: 0 },
+  { id: 1, text: `hello1`, creationTime: Math.random(), count: 0 },
+  { id: 2, text: `hello2`, creationTime: Math.random(), count: 0 },
+  { id: 3, text: `hello3`, creationTime: Math.random(), count: 0 },
+  { id: 4, text: `hello4`, creationTime: Math.random(), count: 0 },
 ];
 let newTodoText = ``;
 
@@ -95,7 +106,7 @@ let App = () => {
             children: `add todo`,
           }, {
             onclick: () => {
-              todos.push({ id: todos.length, text: newTodoText, creationTime: Math.random() });
+              todos.push({ id: todos.length, text: newTodoText, creationTime: Math.random(), count: 0 });
               newTodoText = ``;
               rerender();
             }
