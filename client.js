@@ -74,6 +74,8 @@ let newTodoText = ``;
 
 let App = () => {
   return x({
+    flex: `1`,
+    overflow: `scroll`,
     padding: `50px`,
     children: [
       x({
@@ -95,7 +97,9 @@ let App = () => {
             children: `add todo`,
           }, {
             onclick: () => {
-              todos.push({ id: todos.length, text: newTodoText, creationTime: Math.random() });
+              for (let i = 0; i < 1000; i++) {
+                todos.push({ id: todos.length, text: newTodoText, creationTime: Math.random() });
+              }
               newTodoText = ``;
               rerender();
             }
@@ -124,41 +128,54 @@ let App = () => {
 };
 
 let rootEl = document.body.firstElementChild;
+
+let Time = 0;
 let rerender = () => {
   //rootEl.removeChild(rootEl.firstElementChild);
   let newNode = App();
-  render(newNode, node, rootEl);
+  FutureTasks.push({ node: newNode, oldNode: node, parentEl: rootEl });
+  render();
   node = newNode;
 }
 
-let render = (node, oldNode, parentEl) => {
-  let el = oldNode === null ? document.createElement(node.styles.tag ? node.styles.tag : `div`) : oldNode.el;
 
-  Object.keys(node.styles).forEach(key => {
-    if (key === `text` || key === `children`) return;
-    if (oldNode === null || node.styles[key] !== oldNode.styles[key]) {
-      el.style[key] = node.styles[key];
+let FutureTasks = [];
+let render = () => {
+  Time = Date.now();
+  while (FutureTasks.length > 0) {
+    if (Date.now() - Time > 10) {
+      requestAnimationFrame(render);
+      return;
     }
-  });
-  Object.keys(node.attrs).forEach(key => {
-    if (oldNode === null || node.attrs[key] !== oldNode.attrs[key]) {
-      el[key] = node.attrs[key];
-    }
-  });
-  if (typeof node.children === `string`) {
-    if (oldNode === null || node.children !== oldNode.children) {
-      el.textContent = node.children;
-    }
-  } else if (node.children) {
-    node.children.forEach((childObj, i) => {
-      render(childObj, oldNode ? oldNode.children[i] || null : null, el);
+    let { node, oldNode, parentEl } = FutureTasks.pop();
+    let el = oldNode === null ? document.createElement(node.styles.tag ? node.styles.tag : `div`) : oldNode.el;
+
+    Object.keys(node.styles).forEach(key => {
+      if (key === `text` || key === `children`) return;
+      if (oldNode === null || node.styles[key] !== oldNode.styles[key]) {
+        el.style[key] = node.styles[key];
+      }
     });
-  }
-  node.el = el;
-  if (oldNode === null) {
-    parentEl.appendChild(el);
+    Object.keys(node.attrs).forEach(key => {
+      if (oldNode === null || node.attrs[key] !== oldNode.attrs[key]) {
+        el[key] = node.attrs[key];
+      }
+    });
+    if (typeof node.children === `string`) {
+      if (oldNode === null || node.children !== oldNode.children) {
+        el.textContent = node.children;
+      }
+    } else if (node.children) {
+      node.children.reverse().forEach((childObj, i) => {
+        FutureTasks.push({ node: childObj, oldNode: oldNode ? oldNode.children[i] || null : null, parentEl: el });
+      });
+    }
+    node.el = el;
+    if (oldNode === null) {
+      parentEl.appendChild(el);
+    }
   }
 }
 
-let node = App();
-render(node, null, rootEl);
+let node = null;
+rerender();

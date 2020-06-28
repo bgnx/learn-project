@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html style="width: 100%; height: 100%">
+<html>
 
 <head>
   <style>
+    html, body {
+      width: 100%; 
+      height: 100%;
+      overflow: hidden;
+    }
     div {
       box-sizing: border-box;
       position: relative;
@@ -26,10 +31,39 @@
       font-size: inherit;
     }
   </style>
+
+  <style>
+    div#animation {
+      position: fixed;
+      z-index: 1;
+      bottom: 0;
+      width: 100px;
+      height: 100px;
+      background-color: red;
+      animation-name: example;
+      animation-duration: 4s;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes example {
+      0% {
+        left: 0px;
+      }
+
+      50% {
+        left: 200px;
+      }
+
+      100% {
+        left: 0px;
+      }
+    }
+  </style>
 </head>
 
-<body style="margin: 0; width: 100%; height: 100%">
+<body style="margin: 0;">
   <div style="width: 100%; height: 100%"></div>
+  <div id="animation"></div>
   <script src="client.js"></script>
 </body>
 
