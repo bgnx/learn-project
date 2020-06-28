@@ -153,6 +153,12 @@ let render = (node, oldNode, parentEl) => {
     node.children.forEach((childObj, i) => {
       render(childObj, oldNode ? oldNode.children[i] || null : null, el);
     });
+    if (oldNode !== null) {
+      for (let i = node.children.length; i < oldNode.children.length; i++) {
+        let oldChild = oldNode.children[i];
+        el.removeChild(oldChild.el);
+      }
+    }
   }
   node.el = el;
   if (oldNode === null) {
