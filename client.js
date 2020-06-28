@@ -27,62 +27,56 @@ let Input = ({ ...obj } = {}, attrs = {}) => {
   })
 }
 
-let Counter = class {
-  count = 0;
-  render() {
-    return x({
-      marginLeft: `10px`,
-      marginRight: `10px`,
-      children: `count: ${this.count}`,
-    }, {
-      onclick: () => {
-        this.count += 1;
-        console.log(`count:`, this.count);
-        rerender();
-      }
-    })
-  }
+let Counter = () => {
+  let [count, setCount] = useState(0);
+  return x({
+    marginLeft: `10px`,
+    marginRight: `10px`,
+    children: `count: ${count}`,
+  }, {
+    onclick: () => {
+      setCount(count + 1);
+    }
+  })
 }
 
-let Todo = class {
-  render({ todo }) {
-    return x({
-      flexDirection: `row`,
-      border: `1px solid gray`,
-      padding: `10px`,
-      children: [
-        Checkbox(),
-        x({
-          flex: 1,
-          marginLeft: `10px`,
-          children: [
-            Input({}, {
-              value: todo.text,
-              oninput: (e) => {
-                todo.text = e.target.value;
-                rerender();
-              }
-            })
-          ]
-        }),
-        x({ tag: Counter }),
-        x({ tag: Counter }),
-        x({
-          alignItems: `center`,
-          justifyContent: `center`,
-          border: `1px solid gray`,
-          children: `x`,
-        }, {
-          onclick: () => {
-            todos.splice(todos.indexOf(todo), 1);
-            //request(serverUrl, `deleteTodo`, todo.id);
-            console.log(`delete todo`, todo.id)
-            rerender();
-          }
-        })
-      ]
-    })
-  }
+let Todo = ({ todo }) => {
+  return x({
+    flexDirection: `row`,
+    border: `1px solid gray`,
+    padding: `10px`,
+    children: [
+      Checkbox(),
+      x({
+        flex: 1,
+        marginLeft: `10px`,
+        children: [
+          Input({}, {
+            value: todo.text,
+            oninput: (e) => {
+              todo.text = e.target.value;
+              rerender();
+            }
+          })
+        ]
+      }),
+      x({ tag: Counter }),
+      x({ tag: Counter }),
+      x({
+        alignItems: `center`,
+        justifyContent: `center`,
+        border: `1px solid gray`,
+        children: `x`,
+      }, {
+        onclick: () => {
+          todos.splice(todos.indexOf(todo), 1);
+          //request(serverUrl, `deleteTodo`, todo.id);
+          console.log(`delete todo`, todo.id)
+          rerender();
+        }
+      })
+    ]
+  })
 }
 
 let todos = [
@@ -153,14 +147,36 @@ let rerender = () => {
   node = newNode;
 }
 
+let useState = (initValue) => {
+  let el = Temp;
+  $index += 1;
+  if (el.state.length === $index) {
+    el.state[$index] = initValue;
+  }
+
+  let state = el.state[$index];
+  return [
+    state,
+    (newValue) => {
+      el.state[$index] = newValue;
+      rerender();
+    }
+  ]
+}
+
+let Temp = null;
+let $index = null;
+
 let render = (node, oldNode, parentEl) => {
   let el = oldNode === null ? (
-    node.styles.tag !== undefined && typeof node.styles.tag !== `string` ? new node.styles.tag : document.createElement(node.styles.tag ? node.styles.tag : `div`)
+    node.styles.tag !== undefined && typeof node.styles.tag !== `string` ? { state: [] } : document.createElement(node.styles.tag ? node.styles.tag : `div`)
   ) : oldNode.el;
 
   if (node.styles.tag !== undefined && typeof node.styles.tag !== `string`) {
     node.el = el;
-    node.rendered = el.render(node.attrs);
+    Temp = el; //зачем?
+    $index = -1; //зачем?
+    node.rendered = node.styles.tag(node.attrs); //вызывается функций Counter(), внутри вызывается функция useState()
     render(node.rendered, oldNode && oldNode.rendered || null, parentEl);
     return;
   }
@@ -187,7 +203,11 @@ let render = (node, oldNode, parentEl) => {
     if (oldNode !== null) {
       for (let i = node.children.length; i < oldNode.children.length; i++) {
         let oldChild = oldNode.children[i];
-        el.removeChild(oldChild.el);
+        if (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) {
+          el.removeChild(oldChild.rendered.el); //!todo
+        } else {
+          el.removeChild(oldChild.el);
+        }
       }
     }
   }
