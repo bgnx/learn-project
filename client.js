@@ -95,7 +95,7 @@ let App = () => {
             children: `add todo`,
           }, {
             onclick: () => {
-              todos.push({ id: todo.length, text: newTodoText, creationTime: Math.random() });
+              todos.push({ id: todos.length, text: newTodoText, creationTime: Math.random() });
               newTodoText = ``;
               rerender();
             }
