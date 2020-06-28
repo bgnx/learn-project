@@ -4,6 +4,7 @@ let x = ({ children, ...stylesObj }, attrsObj = {}) => {
     attrs: attrsObj,
     children,
     el: null,
+    rendered: null,
   }
 }
 
@@ -26,60 +27,70 @@ let Input = ({ ...obj } = {}, attrs = {}) => {
   })
 }
 
-let Todo = ({ todo }) => {
-  return x({
-    flexDirection: `row`,
-    border: `1px solid gray`,
-    padding: `10px`,
-    children: [
-      Checkbox(),
-      x({
-        flex: 1,
-        marginLeft: `10px`,
-        children: [
-          Input({}, {
-            value: todo.text,
-            oninput: (e) => {
-              todo.text = e.target.value;
-              rerender();
-            }
-          })
-        ]
-      }),
-      x({
-        marginLeft: `10px`,
-        marginRight: `10px`,
-        children: `count: ${todo.count}`,
-      }, {
-        onclick: () => {
-          todo.count += 1;
-          console.log(`count:`, todo.count);
-          rerender();
-        }
-      }),
-      x({
-        alignItems: `center`,
-        justifyContent: `center`,
-        border: `1px solid gray`,
-        children: `x`,
-      }, {
-        onclick: () => {
-          todos.splice(todos.indexOf(todo), 1);
-          //request(serverUrl, `deleteTodo`, todo.id);
-          console.log(`delete todo`, todo.id)
-          rerender();
-        }
-      })
-    ]
-  })
+let Counter = class {
+  count = 0;
+  render() {
+    return x({
+      marginLeft: `10px`,
+      marginRight: `10px`,
+      children: `count: ${this.count}`,
+    }, {
+      onclick: () => {
+        this.count += 1;
+        console.log(`count:`, this.count);
+        rerender();
+      }
+    })
+  }
+}
+
+let Todo = class {
+  render({ todo }) {
+    return x({
+      flexDirection: `row`,
+      border: `1px solid gray`,
+      padding: `10px`,
+      children: [
+        Checkbox(),
+        x({
+          flex: 1,
+          marginLeft: `10px`,
+          children: [
+            Input({}, {
+              value: todo.text,
+              oninput: (e) => {
+                todo.text = e.target.value;
+                rerender();
+              }
+            })
+          ]
+        }),
+        x({ tag: Counter }),
+        x({ tag: Counter }),
+        x({
+          alignItems: `center`,
+          justifyContent: `center`,
+          border: `1px solid gray`,
+          children: `x`,
+        }, {
+          onclick: () => {
+            todos.splice(todos.indexOf(todo), 1);
+            //request(serverUrl, `deleteTodo`, todo.id);
+            console.log(`delete todo`, todo.id)
+            rerender();
+          }
+        })
+      ]
+    })
+  }
 }
 
 let todos = [
-  { id: 0, text: `hello0`, creationTime: Math.random(), count: 0 },
-  { id: 1, text: `hello1`, creationTime: Math.random(), count: 0 },
-  { id: 2, text: `hello2`, creationTime: Math.random(), count: 0 },
-  { id: 3, text: `hello3`, creationTime: Math.random(), count: 0 },
-  { id: 4, text: `hello4`, creationTime: Math.random(), count: 0 },
+  { id: 0, text: `hello0`, creationTime: Math.random() },
+  { id: 1, text: `hello1`, creationTime: Math.random() },
+  { id: 2, text: `hello2`, creationTime: Math.random() },
+  { id: 3, text: `hello3`, creationTime: Math.random() },
+  { id: 4, text: `hello4`, creationTime: Math.random() },
 ];
 let newTodoText = ``;
 
@@ -115,7 +126,7 @@ let App = () => {
       }),
       x({
         marginTop: `15px`,
-        children: todos.map(todo => Todo({ todo: todo }))
+        children: todos.map(todo => x({ tag: Todo }, { todo: todo }))
       }),
       x({
         marginTop: `10px`,
@@ -124,7 +135,7 @@ let App = () => {
             children: [
               x({ children: `sort by creation time` }),
               x({
-                children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => Todo({ todo: todo }))
+                children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => x({ tag: Todo }, { todo: todo }))
               })
             ]
           })
@@ -143,7 +154,16 @@ let rerender = () => {
 }
 
 let render = (node, oldNode, parentEl) => {
-  let el = oldNode === null ? document.createElement(node.styles.tag ? node.styles.tag : `div`) : oldNode.el;
+  let el = oldNode === null ? (
+    node.styles.tag !== undefined && typeof node.styles.tag !== `string` ? new node.styles.tag : document.createElement(node.styles.tag ? node.styles.tag : `div`)
+  ) : oldNode.el;
+
+  if (node.styles.tag !== undefined && typeof node.styles.tag !== `string`) {
+    node.el = el;
+    node.rendered = el.render(node.attrs);
+    render(node.rendered, oldNode && oldNode.rendered || null, parentEl);
+    return;
+  }
 
   Object.keys(node.styles).forEach(key => {
     if (key === `text` || key === `children`) return;
