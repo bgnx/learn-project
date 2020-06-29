@@ -45,15 +45,16 @@ let Counter = class {
 }
 
 let SomeComponent = class {
-  render(attrs) {
+  render() {
     return x({
-      ...attrs
+      ...this.props
     })
   }
 }
 
 let Todo = class {
-  render({ todo }) {
+  render() {
+    let { todo } = this.props;
     return x({ tag: SomeComponent }, {
       flexDirection: `row`,
       border: `1px solid gray`,
@@ -82,14 +83,16 @@ let Todo = class {
           children: `x`,
         }, {
           onclick: () => {
+            console.log(`delete todo`, todo.id);
             todos.splice(todos.indexOf(todo), 1);
-            //request(serverUrl, `deleteTodo`, todo.id);
-            console.log(`delete todo`, todo.id)
             rerender();
           }
         })
       ]
     })
+  }
+  componentWillUnmount() {
+    console.log(`componentWillUnmount ${this.props.todo.id}`)
   }
 }
 
@@ -136,19 +139,19 @@ let App = () => {
         marginTop: `15px`,
         children: todos.map(todo => x({ tag: Todo }, { todo: todo }))
       }),
-      x({
-        marginTop: `10px`,
-        children: [
-          x({
-            children: [
-              x({ children: `sort by creation time` }),
-              x({
-                children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => x({ tag: Todo }, { todo: todo }))
-              })
-            ]
-          })
-        ]
-      })
+      /*       x({
+              marginTop: `10px`,
+              children: [
+                x({
+                  children: [
+                    x({ children: `sort by creation time` }),
+                    x({
+                      children: todos.slice().sort((a, b) => a.creationTime - b.creationTime).map(todo => x({ tag: Todo }, { todo: todo }))
+                    })
+                  ]
+                })
+              ]
+            }) */
     ]
   });
 };
@@ -168,7 +171,8 @@ let render = (node, oldNode, parentEl) => {
 
   if (node.styles.tag !== undefined && typeof node.styles.tag !== `string`) {
     node.el = el;
-    node.rendered = el.render(node.attrs);
+    el.props = node.attrs;
+    node.rendered = el.render();
     render(node.rendered, oldNode && oldNode.rendered || null, parentEl);
     return;
   }
@@ -195,7 +199,10 @@ let render = (node, oldNode, parentEl) => {
     if (oldNode !== null) {
       for (let i = node.children.length; i < oldNode.children.length; i++) {
         let oldChild = oldNode.children[i];
-        while (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) {
+        if (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) { //isComponent
+          oldChild.el.componentWillUnmount && oldChild.el.componentWillUnmount();
+        }
+        while (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) { //isComponent
           oldChild = oldChild.rendered;
         }
         el.removeChild(oldChild.el);
