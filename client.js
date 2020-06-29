@@ -44,9 +44,17 @@ let Counter = class {
   }
 }
 
+let SomeComponent = class {
+  render(attrs) {
+    return x({
+      ...attrs
+    })
+  }
+}
+
 let Todo = class {
   render({ todo }) {
-    return x({
+    return x({ tag: SomeComponent }, {
       flexDirection: `row`,
       border: `1px solid gray`,
       padding: `10px`,
@@ -187,6 +195,9 @@ let render = (node, oldNode, parentEl) => {
     if (oldNode !== null) {
       for (let i = node.children.length; i < oldNode.children.length; i++) {
         let oldChild = oldNode.children[i];
+        while (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) {
+          oldChild = oldChild.rendered;
+        }
         el.removeChild(oldChild.el);
       }
     }
