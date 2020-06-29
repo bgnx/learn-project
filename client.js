@@ -164,6 +164,11 @@ let useState = (initValue) => {
   ]
 }
 
+let useEffect = (fn) => {
+  useEffectFn = fn;
+}
+
+let useEffectFn = null;
 let Temp = null;
 let $index = null;
 
@@ -177,7 +182,10 @@ let render = (node, oldNode, parentEl) => {
     Temp = el; //зачем?
     $index = -1; //зачем?
     node.rendered = node.styles.tag(node.attrs); //вызывается функций Counter(), внутри вызывается функция useState()
+    let localUseEffectFn = useEffectFn;
     render(node.rendered, oldNode && oldNode.rendered || null, parentEl);
+    if (oldNode.fn) oldNode.fn();
+    node.fn = localUseEffectFn();
     return;
   }
 
