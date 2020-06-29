@@ -1,10 +1,12 @@
-let x = ({ children, ...stylesObj }, attrsObj = {}) => {
+let x = ({ children, keyed = false, ...stylesObj }, attrsObj = {}, key) => {
   return {
     styles: stylesObj,
     attrs: attrsObj,
     children,
     el: null,
     rendered: null,
+    key,
+    keyed
   }
 }
 
@@ -137,7 +139,8 @@ let App = () => {
       }),
       x({
         marginTop: `15px`,
-        children: todos.map(todo => x({ tag: Todo }, { todo: todo }))
+        keyed: true,
+        children: todos.map((todo, i) => x({ tag: Todo }, { todo: todo }, todo.id))
       }),
       /*       x({
               marginTop: `10px`,
@@ -191,6 +194,23 @@ let render = (node, oldNode, parentEl) => {
   if (typeof node.children === `string`) {
     if (oldNode === null || node.children !== oldNode.children) {
       el.textContent = node.children;
+    }
+  } else if (node.children && node.keyed) {
+    node.children.forEach((childObj, i) => {
+      render(childObj, oldNode ? oldNode.children.find(oldChild => oldChild.key === childObj.key) || null : null, el);
+    });
+    if (oldNode !== null) {
+      oldNode.children.forEach(oldChild => {
+        if (node.children.find(newChild => newChild.key === oldChild.key) === undefined) {
+          if (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) { //isComponent
+            oldChild.el.componentWillUnmount && oldChild.el.componentWillUnmount();
+          }
+          while (oldChild.styles.tag !== undefined && typeof oldChild.styles.tag !== `string`) { //isComponent
+            oldChild = oldChild.rendered;
+          }
+          el.removeChild(oldChild.el);
+        }
+      })
     }
   } else if (node.children) {
     node.children.forEach((childObj, i) => {
